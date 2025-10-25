@@ -3,3 +3,5 @@ Flask-SQLAlchemy
 Flask-Login
 python-dotenv
 gunicorn
+Flask-WTF
+wtforms
