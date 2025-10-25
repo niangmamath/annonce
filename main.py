@@ -40,6 +40,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     annonces = db.relationship('Annonce', backref='author', lazy=True)
+    comments = db.relationship('Comment', backref='author', lazy=True)
+    likes = db.relationship('Like', backref='author', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -55,6 +57,20 @@ class Annonce(db.Model):
     image_filename = db.Column(db.String(120), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     is_approved = db.Column(db.Boolean, default=False, nullable=False)
+    comments = db.relationship('Comment', backref='annonce', lazy=True, cascade="all, delete-orphan")
+    likes = db.relationship('Like', backref='annonce', lazy=True, cascade="all, delete-orphan")
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    annonce_id = db.Column(db.Integer, db.ForeignKey('annonce.id'), nullable=False)
+
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    annonce_id = db.Column(db.Integer, db.ForeignKey('annonce.id'), nullable=False)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -85,16 +101,22 @@ class AnnonceForm(FlaskForm):
     image = FileField('Image', validators=[FileAllowed(['jpg', 'png', 'jpeg', 'gif'])])
     submit = SubmitField('Create Annonce')
 
+class CommentForm(FlaskForm):
+    text = TextAreaField('Comment', validators=[DataRequired()])
+    submit = SubmitField('Add Comment')
+
 # --- Routes ---
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    latest_annonces = Annonce.query.filter_by(is_approved=True).order_by(Annonce.id.desc()).limit(5).all()
+    return render_template('home.html', annonces=latest_annonces)
 
 @app.route('/annonces')
 def annonces_list():
     all_annonces = Annonce.query.filter_by(is_approved=True).order_by(Annonce.id.desc()).all()
-    return render_template('annonces.html', annonces=all_annonces)
+    comment_form = CommentForm()
+    return render_template('annonces.html', annonces=all_annonces, comment_form=comment_form)
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -120,6 +142,34 @@ def add():
         flash('Annonce soumise pour approbation.', 'success')
         return redirect(url_for('annonces_list'))
     return render_template('add_annonce.html', form=form)
+
+@app.route('/annonce/<int:annonce_id>/comment', methods=['POST'])
+@login_required
+def add_comment(annonce_id):
+    form = CommentForm()
+    annonce = Annonce.query.get_or_404(annonce_id)
+    if form.validate_on_submit():
+        comment = Comment(text=form.text.data, user_id=current_user.id, annonce_id=annonce.id)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been added.', 'success')
+    return redirect(url_for('annonces_list'))
+
+@app.route('/annonce/<int:annonce_id>/like', methods=['POST'])
+@login_required
+def like_annonce(annonce_id):
+    annonce = Annonce.query.get_or_404(annonce_id)
+    like = Like.query.filter_by(user_id=current_user.id, annonce_id=annonce.id).first()
+    if like:
+        db.session.delete(like)
+        db.session.commit()
+        flash('You unliked the annonce.', 'success')
+    else:
+        like = Like(user_id=current_user.id, annonce_id=annonce.id)
+        db.session.add(like)
+        db.session.commit()
+        flash('You liked the annonce.', 'success')
+    return redirect(url_for('annonces_list'))
 
 @app.route('/annonce/delete/<int:annonce_id>', methods=['POST'])
 @login_required

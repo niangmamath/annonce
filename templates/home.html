@@ -11,6 +11,35 @@
         </div>
     </div>
 
+    <section class="latest-annonces">
+        <h2>Dernières Annonces</h2>
+        <div class="carousel-container">
+            {% for annonce in annonces %}
+                <div class="carousel-item">
+                    <a href="{{ url_for('annonces_list') }}">
+                        {% if annonce.image_filename %}
+                            <img src="{{ url_for('uploaded_file', filename=annonce.image_filename) }}" alt="{{ annonce.title }}">
+                        {% endif %}
+                        <h3>{{ annonce.title }}</h3>
+                        <p class="price">{{ "%.2f"|format(annonce.price) }} MAD</p>
+                    </a>
+                </div>
+            {% endfor %}
+            <!-- Duplicate for seamless scroll -->
+            {% for annonce in annonces %}
+                <div class="carousel-item">
+                    <a href="{{ url_for('annonces_list') }}">
+                        {% if annonce.image_filename %}
+                            <img src="{{ url_for('uploaded_file', filename=annonce.image_filename) }}" alt="{{ annonce.title }}">
+                        {% endif %}
+                        <h3>{{ annonce.title }}</h3>
+                        <p class="price">{{ "%.2f"|format(annonce.price) }} MAD</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
     <section class="features">
         <h2>Comment ça marche ?</h2>
         <div class="feature-items">
