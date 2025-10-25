@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Bienvenue sur notre plateforme d'annonces</h1>
+    <p>Le meilleur endroit pour acheter et vendre des articles d'occasion.</p>
+    
+    <h2>Nos Services</h2>
+    <ul>
+        <li>Parcourez des milliers d'annonces.</li>
+        <li>Publiez vos propres annonces facilement.</li>
+        <li>Contactez les vendeurs en toute sécurité.</li>
+    </ul>
+
+    <a href="{{ url_for('annonces_list') }}" class="button">Voir les annonces</a>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Annonces</h1>
+    <ul class="annonces">
+        {% for annonce in annonces %}
+            <li>
+                <h2>{{ annonce.title }}</h2>
+                {% if annonce.image %}
+                    <img src="{{ url_for('uploaded_file', filename=annonce.image) }}" alt="{{ annonce.title }}" width="200">
+                {% endif %}
+                <p>{{ annonce.description }}</p>
+                <p><strong>Prix:</strong> {{ annonce.price }} €</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
