@@ -1,17 +1,46 @@
 {% extends 'base.html' %}
 
+{% block title %}Annonces - Annonce Platform{% endblock %}
+
 {% block content %}
-    <h1>Annonces</h1>
+    <div class="annonces-header">
+        <h1>Toutes les Annonces</h1>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('add') }}" class="btn">Poster une annonce</a>
+        {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
     <ul class="annonces">
         {% for annonce in annonces %}
             <li>
-                <h2>{{ annonce.title }}</h2>
-                {% if annonce.image %}
-                    <img src="{{ url_for('uploaded_file', filename=annonce.image) }}" alt="{{ annonce.title }}" width="200">
+                {% if annonce.image_filename %}
+                    <img src="{{ url_for('uploaded_file', filename=annonce.image_filename) }}" alt="{{ annonce.title }}">
                 {% endif %}
-                <p>{{ annonce.description }}</p>
-                <p><strong>Prix:</strong> {{ annonce.price }} €</p>
+                <h2>{{ annonce.title }}</h2>
+                <p class="price">{{ "%.2f"|format(annonce.price) }} €</p>
+                <p>{{ annonce.description|truncate(100) }}</p>
+                <p class="author-info"><em>Vendu par : {{ annonce.author.email }}</em></p>
+                
+                {% if current_user.is_authenticated and current_user.id == annonce.user_id %}
+                    <div class="annonce-actions">
+                        <form action="{{ url_for('delete_annonce', annonce_id=annonce.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?');">
+                            <button type="submit" class="btn-danger">Supprimer</button>
+                        </form>
+                    </div>
+                {% endif %}
             </li>
+        {% else %}
+            <p>Il n'y a aucune annonce pour le moment.</p>
         {% endfor %}
     </ul>
 {% endblock %}

@@ -1,0 +1,15 @@
+<svg width="150" height="50" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .text {
+            font-family: 'Arial', sans-serif;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .highlight {
+            fill: #3498db; /* Blue color */
+        }
+    </style>
+    <text x="5" y="35" class="text">
+        An<tspan class="highlight">nonce</tspan>
+    </text>
+</svg>

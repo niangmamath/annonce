@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Admin Dashboard</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Pending Annonces -->
+    <div class="admin-section">
+        <h2>Annonces en attente d'approbation ({{ pending_annonces|length }})</h2>
+        {% if pending_annonces %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Auteur</th>
+                        <th>Prix</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for annonce in pending_annonces %}
+                    <tr>
+                        <td data-label="Titre">{{ annonce.title }}</td>
+                        <td data-label="Auteur">{{ annonce.author.email }}</td>
+                        <td data-label="Prix">{{ "%.2f"|format(annonce.price) }} €</td>
+                        <td data-label="Actions">
+                            <form action="{{ url_for('approve_annonce', annonce_id=annonce.id) }}" method="post" style="display: inline-block;">
+                                <button type="submit" class="btn-success">Approuver</button>
+                            </form>
+                            <form action="{{ url_for('deny_annonce', annonce_id=annonce.id) }}" method="post" style="display: inline-block;" onsubmit="return confirm('Voulez-vous vraiment refuser et supprimer cette annonce ?');">
+                                <button type="submit" class="btn-danger">Refuser</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune annonce en attente.</p>
+        {% endif %}
+    </div>
+
+    <!-- Approved Annonces -->
+    <div class="admin-section">
+        <h2>Annonces Approuvées ({{ approved_annonces|length }})</h2>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Auteur</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for annonce in approved_annonces %}
+                <tr>
+                    <td data-label="ID">{{ annonce.id }}</td>
+                    <td data-label="Titre">{{ annonce.title }}</td>
+                    <td data-label="Auteur">{{ annonce.author.email }}</td>
+                    <td data-label="Actions">
+                        <form action="{{ url_for('delete_annonce', annonce_id=annonce.id) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment supprimer cette annonce ?');">
+                            <button type="submit" class="btn-danger">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Users -->
+    <div class="admin-section">
+        <h2>Utilisateurs ({{ users|length }})</h2>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Admin?</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td data-label="ID">{{ user.id }}</td>
+                    <td data-label="Email">{{ user.email }}</td>
+                    <td data-label="Admin?">{% if user.is_admin %}Oui{% else %}Non{% endif %}</td>
+                    <td data-label="Actions">
+                        {% if not user.is_admin %}
+                        <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment supprimer cet utilisateur et toutes ses annonces ?');">
+                            <button type="submit" class="btn-danger">Supprimer</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
